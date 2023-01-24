@@ -1,0 +1,31 @@
+#(3)	GREAT analysis 
+The following R code is a function to send requests to GREAT web server. The input bed file lists 4 variables: chromosome, bp of CpG start (CGstart in hg19), bp of CpG end (CGstart+1), and CpG name.  
+#
+#R code
+#
+library(rGREAT)
+output.all={}
+job = submitGreatJob(input, bg = background,
+                     species               = "hg19",
+                     includeCuratedRegDoms = TRUE,
+                     rule                  = c("basalPlusExt"),
+                     adv_upstream          = 5.0,
+                     adv_downstream        = 1.0,
+                     adv_span              = 50,
+                     request_interval = 300,
+                     version="3",
+                     max_tries = 10)
+#
+ontology.all=availableOntologies(job)
+print(ontology.all)
+
+for(k in 1:length(ontology.all)){
+  print(ontology.all[k])
+  out0.list = tryCatch(getEnrichmentTables(job,ontology=ontology.all[k], download_by = "tsv"),error=function(e){NULL})
+  if(!is.null(out0.list)){
+    db0.list=as.list(names(out0.list))
+    output<-Map(cbind,Database=db0.list,out0.list)
+    output<-do.call('rbind',output)
+    output.all=rbind(output.all,output)
+  }
+}
