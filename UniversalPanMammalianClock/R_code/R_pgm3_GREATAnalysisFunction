@@ -1,5 +1,5 @@
 #(3)	GREAT analysis 
-The following R code is a function to send requests to GREAT web server. The input bed file lists 4 variables: chromosome, bp of CpG start (CGstart in hg19), bp of CpG end (CGstart+1), and CpG name.  
+#The following R code is a function to send requests to GREAT web server. The input bed file lists 4 variables: chromosome, bp of CpG start (CGstart in hg19), bp of CpG end (CGstart+1), and CpG name.  
 #
 #R code
 #
