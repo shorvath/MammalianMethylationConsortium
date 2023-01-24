@@ -1,5 +1,5 @@
-(4)	Universal chromatin state analysis
-The following R code computes the summary statistics for the annotation of our top 1000 positively and negatively age-related CpGs based on universal chromatin state analysis. The code requires two input datasets: (1) hmm lists CpG and its corresponding chromatin state, and (2) summary statistics of our EWAS of age.
+#(4)	Universal chromatin state analysis
+#The following R code computes the summary statistics for the annotation of our top 1000 positively and negatively age-related CpGs based on universal chromatin state analysis. The code requires two input datasets: (1) hmm lists CpG and its corresponding chromatin state, and (2) summary statistics of our EWAS of age.
 #
 #R code
 #
