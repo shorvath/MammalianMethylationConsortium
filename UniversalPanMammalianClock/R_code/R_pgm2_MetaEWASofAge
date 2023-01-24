@@ -1,0 +1,119 @@
+#(2)Two-stage meta EWAS of age across species
+#The following R code is a function to perform two-stage meta EWAS of age. The function requires two input files: all.info lists SampleID, SpeciesLatinName, Age, Tissue and xs.all lists beta values of CpGs with rownames=SampleID.
+#
+#R code
+#
+
+rm(list=ls())
+library(doParallel)
+library(WGCNA)
+library(iterators)
+F_twostep_stouffer_verbose<-function(all.info,xs.all,sp.cut=15,Y.test='Age'){
+  out.sp_tissue=data.frame(table(all.info$SpeciesLatinName,all.info$Tissue))
+  names(out.sp_tissue)=c('SpeciesLatinName','Tissue','SpeciesTissue.freq')
+  out.sp_tissue=subset(out.sp_tissue,SpeciesTissue.freq>=sp.cut)
+  summary(out.sp_tissue)
+  cat('dim of sp_tissue',nrow(out.sp_tissue),'\n')
+  out.sp_tissue$SpeciesLatinName=as.character(out.sp_tissue$SpeciesLatinName)
+  out.sp_tissue$Tissue=as.character(out.sp_tissue$Tissue)
+  sp.ntissue=data.frame(table(out.sp_tissue$SpeciesLatinName))
+  names(sp.ntissue)=c('SpeciesLatinName','sp.ntissue')
+  sp.ntissue2=subset(sp.ntissue,sp.ntissue>1)
+  sp.ntissue2=subset(sp.ntissue,sp.ntissue==1)
+  #
+  out.sp_tissue=out.sp_tissue[order(out.sp_tissue$SpeciesLatinName,out.sp_tissue$SpeciesTissue.freq),]
+  out.sp_tissue$SpeciesTissue=paste0(out.sp_tissue$SpeciesLatinName,'_',out.sp_tissue$Tissue)
+  out.sp_tissue$sp_tissue.order=1:dim(out.sp_tissue)[1]
+  #
+  out.sp_tissue.first=subset(out.sp_tissue,!duplicated(SpeciesLatinName))
+  out.sp_tissue.first$n1=out.sp_tissue.first$sp_tissue.order
+  #
+  out.sp_tissue=out.sp_tissue[order(out.sp_tissue$SpeciesLatinName,-out.sp_tissue$SpeciesTissue.freq),]
+  out.sp_tissue.last=subset(out.sp_tissue,!duplicated(SpeciesLatinName))
+  out.sp_tissue.last$n2=out.sp_tissue.last$sp_tissue.order
+  sp_tissue.df=merge(by='SpeciesLatinName',subset(out.sp_tissue.first,select=c(SpeciesLatinName,n1)),
+                     subset(out.sp_tissue.last,select=c(SpeciesLatinName,n2)))
+  #
+  sp_tissue.df$ntissue=sp_tissue.df$n2-sp_tissue.df$n1+1
+  out.sp_tissue=out.sp_tissue[order(out.sp_tissue$sp_tissue.order),]
+  #
+  N.test<-length(out.sp_tissue$SpeciesTissue)
+  #
+  all.info$Y.test=all.info[,Y.test]
+  print(head(all.info$SampleID))
+  print(head(rownames(xs.all)))
+  ck=sum(as.numeric(head(all.info$SampleID)!=head(rownames(xs.all))))
+  if(ck>0) {stop ('SampleID not match')}
+  #
+  corr.df=foreach(k=1:N.test,
+                  .combine='cbind',
+                  .packages=c('doParallel','WGCNA')) %dopar%{
+                    tissue.test=out.sp_tissue$SpeciesTissue[k]
+                    id.test=which(all.info$SP_Tissue==tissue.test)
+                    ewas.out=standardScreeningNumericTrait(datExpr=xs.all[id.test,],all.info$Y.test[id.test],areaUnderROC=FALSE)
+                    ewas.out$SE=(1-ewas.out$cor^2)/sqrt((ewas.out$nPresentSamples-2))
+                    ewas.out$SE.alt=ewas.out$cor/ewas.out$Z
+                    ewas.out$W=1/(ewas.out$SE)^2   
+                    ewas.out$w0=1  
+                    ewas.out$sp_tissue=tissue.test
+                    ewas.out$Z.new=ifelse(ewas.out$pvalueStudent>0,abs(qnorm(ewas.out$pvalueStudent/2))*sign(ewas.out$Z),ewas.out$Z)
+                    ewas.out=subset(ewas.out,select=c(cor,Z.new))
+                    names(ewas.out)=c(paste0('cor.',tissue.test),paste0('Z.',tissue.test))
+                    return(ewas.out)
+                  }
+  #
+  corr.df.z   =data.frame(CpG=names(xs.all),corr.df[,substr(names(corr.df),1,2)=='Z.'])
+  corr.df.cor =data.frame(CpG=names(xs.all),corr.df[,substr(names(corr.df),1,2)!='Z.'])
+  #
+  N.test=nrow(sp_tissue.df)
+  for(k in 1:N.test){
+    species.test=gsub(sp_tissue.df$SpeciesLatinName[k],pattern=' ',rep='.')
+    zs=grep(names(corr.df.z),pattern=species.test)
+    z.df=subset(corr.df.z,select=c(zs))
+    if(length(zs)==1){
+      sp.df=z.df
+    }else{
+      meta1=apply(z.df,1,sum,na.rm=T)
+      meta2=sqrt(sum(ncol(z.df)))
+      sp.df=data.frame(meta1/meta2)
+      #
+    }
+    names(sp.df)=as.character(species.test)
+    if(k==1) {meta.df=sp.df
+    }else{
+      meta.df=cbind(meta.df,sp.df)}
+  }
+  #
+  #stage 2
+  #
+  meta1.all=apply(meta.df,1,sum,na.rm=T)
+  meta2.all=sqrt(sum(ncol(meta.df)))
+  #
+  metaZ=data.frame(CpG=corr.df.z$CpG,Meta.Z=meta1.all/meta2.all)
+  metaZ$Meta.P0=pnorm(-abs(metaZ$Meta.Z))*2
+  p1=pnorm(-abs(metaZ$Meta.Z),log=T)
+  p2=p1/log(10)
+  a=10^(p2-floor(p2))*2
+  b=floor(p2)
+  b1=ifelse(a>10,b+1, b)
+  a1=ifelse(a>10,a/10,a)
+  
+  metaZ$Meta.P=as.character(paste0(round(a1,digits=2),'E',b1))
+  metaZ$log10P=-1*(log10(a1)+b1)
+  out.list=vector(3,mode='list')
+  out.list[[1]]=metaZ
+  out.list[[2]]=data.frame(CpG=corr.df.z$CpG,meta.df)
+  names(out.list[[2]])[-c(1)]=paste0(names(out.list[[2]])[-c(1)],'.Z')
+  #
+  F1_direction<-function(x){
+    direction={}
+    for(i in 1:length(x)){
+      direction=paste0(direction,ifelse(x[i]>0,'+','-'))
+    }
+    return(direction)
+  }
+  out.list[[2]]$Direction=apply(meta.df,1,F1_direction)
+  out.list[[3]]=out.sp_tissue
+  return(out.list)
+}
+#
