@@ -1,0 +1,56 @@
+(4)	Universal chromatin state analysis
+The following R code computes the summary statistics for the annotation of our top 1000 positively and negatively age-related CpGs based on universal chromatin state analysis. The code requires two input datasets: (1) hmm lists CpG and its corresponding chromatin state, and (2) summary statistics of our EWAS of age.
+#
+#R code
+#
+TopNum=1000
+out.all={}
+
+  ewas=subset(ewas,CpG%in%hmm$CpG)
+  ewas=ewas[order(ewas$rank.Meta.Z),]
+  ewas.pos=subset(ewas,Meta.Z>0)
+  ewas.pos=ewas.pos[1:TopNum,]
+  ewas.neg=subset(ewas,Meta.Z<0)
+  ewas.neg=ewas.neg[1:TopNum,]
+  #
+  ck=is.element(ewas$CpG,hmm$CpG)
+  #
+  ewas.list=vector(len=2,mode='list')
+  names(ewas.list)=c('pos','neg')
+  ewas.list[[1]]=ewas.pos
+  ewas.list[[2]]=ewas.neg
+  for(ilist in 1:2){
+    group=names(ewas.list)[[ilist]]
+    #
+    ewas.test=ewas.list[[ilist]]
+    for(i in 1:n.states){
+      anno=cpg.list[[i]]
+      x.pos.cpg=intersect(anno$CpG,ewas.test$CpG);x.pos=length(x.pos.cpg)
+      m=length(anno$CpG)#white balls
+k=TopNum#number of draw
+      ntot=nrow(ewas)
+      n=ntot-m
+      #odds ratio
+      a=x.pos
+      b=k-a
+      c=m-a
+      d=n-b
+      odds.pos=(a*d)/(c*b)
+      #obser x or > x
+      p.enrich.pos=ifelse(odds.pos>=1,phyper(x.pos-1,m=m,n=n,k=k,lower.tail=F)
+                          ,phyper(x.pos,m=m,n=n,k=k,lower.tail=T))
+      #
+      logp.enrich.pos=ifelse(odds.pos>=1,phyper(x.pos-1,m=m,n=n,k=k,lower.tail=F,log.p=T)
+                             ,phyper(x.pos,m=m,n=n,k=k,lower.tail=T,log.p=T))
+      logp.enrich.pos=logp.enrich.pos
+      #
+      sign.pos=ifelse(odds.pos>=1,1,-1)
+      log10p.enrich.pos= -(logp.enrich.pos/log(10))*sign.pos
+      #
+      out1=data.frame(tissue=TISSUE[k.tissue],state=anno$state[1],group=group,TopNum=TopNum,N.overlap= x.pos,
+                      OddsRatio=odds.pos,Hyper.P=p.enrich.pos,log10P=log10p.enrich.pos)
+      out.all=rbind(out.all,out1)
+      rm(a,b,c,d,x.pos,odds.pos)
+      #
+    }#end state
+  }#end ilist
