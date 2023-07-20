@@ -4,4 +4,4 @@ The new 320k platform contains most of the original mammalian plus 290k mouse sp
 Please use the following variable to map mammal40k based clocks to the 320k array
 mammalianProbesToUse.rmCor0.7Plus.ResMouseLessThan0.25.Calibration0.8Plus 
 
-Note: due to the size limitation, we splitted the annotation into two parts. Use rbind to merge both parts. 
+Note: Due to the size limitation, we splitted the annotation into two parts. Use rbind to merge both parts. 
