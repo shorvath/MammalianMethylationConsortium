@@ -16,11 +16,11 @@ Here are the summary of the content:
 
 Key references on Mammalian Methylation Array:
 
-Details on the array development:
+Details on the array development:  
 Arneson, A., Haghani, A., Thompson, M. J., Pellegrini, M., Kwon, S. B., Vu, H., Maciejewski, E., Yao, M., Li, C. Z., Lu, A. T., Morselli, M., Rubbi, L., Barnes, B., Hansen, K. D., Zhou, W., Breeze, C. E., Ernst, J., & Horvath, S. (2022). A mammalian methylation array for profiling methylation levels at conserved sequences. Nat Commun, 13(1), 783. https://doi.org/10.1038/s41467-022-28355-z 
 
-Mammalian Methylation Dataset and a cross species meta analysis:
+Mammalian Methylation Dataset and a cross species meta analysis:  
 Haghani, A., Li, C. Z., Robeck, T. R., Zhang, J., Lu, A. T., Ablaeva, J., Acosta-Rodriguez, V. A., Adams, D. M., Alagaili, A. N., Almunia, J., Aloysius, A., Amor, N. M. S., Ardehali, R., Arneson, A., Baker, C. S., Banks, G., Belov, K., Bennett, N. C., Black, P., . . . Horvath, S. (2023). DNA methylation networks underlying mammalian traits. Science, 381(6658), eabq5693. https://doi.org/10.1126/science.abq5693 
 
-A paper on the universal epigenetic clocks in mammals
+A paper on the universal epigenetic clocks in mammals:  
 Lu, A. T., Fei, Z., Haghani, A., Robeck, T. R., Zoller, J. A., Li, C. Z., Lowe, R., Yan, Q., Zhang, J., Vu, H., Ablaeva, J., Acosta-Rodriguez, V. A., Adams, D. M., Almunia, J., Aloysius, A., Ardehali, R., Arneson, A., Baker, C. S., Banks, G., . . . Horvath, S. (2023). Universal DNA methylation age across mammalian tissues. Nat Aging. https://doi.org/10.1038/s43587-023-00462-6 
