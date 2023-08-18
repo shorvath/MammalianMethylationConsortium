@@ -1,0 +1,487 @@
+---
+title: "AROCM with Loglinear Transformed Age"
+author: "Zhe Fei"
+date: "2023-02-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+## LogliAge and Slopes
+
+```{r}
+states
+statesPRC2
+UseMaturity = FALSE ## 0.1Lifespan
+```
+
+
+```{r}
+props = c(1:10)/10  ### 1.00 0.50 0.40 0.30 0.20 0.15 0.10
+oldprops = c(1, 1.5, 2)
+dim(SpeciesMat)
+head(colnames(SpeciesMat), 22)
+SpeciesMat = SpeciesMat[,c(1:16)]
+colnames(SpeciesMat)
+```
+
+
+```{r}
+source("Codes_AROCM/0_fns_v2.R")
+vnum = "v16"
+cex.main=1.5
+cut1 = freq = 3
+j=2
+for (j in 1:length(statesPRC2)) {
+  cgid = cg_list[[j]]
+  len1 = statesPRC2[j]
+  
+  source("Codes_AROCM/3_fitslopeTransform.R")
+  ## source("3_fitslopeTransform.R")
+}
+
+outtab = data.frame(cgid)
+write.csv(outtab, paste0(outfolder,"/cglist_",len1,".csv"))
+```
+
+
+```{r}
+dim(SpeciesMat)
+colnames(SpeciesMat)
+colnames(SpeciesMat)[18:19] = paste0(colnames(SpeciesMat)[17],c("_Young","_Old"))
+colnames(SpeciesMat)[20:21] = c("IdentityScaledBivProm2+CorAge",
+                                "IdentityScaledBivProm2+CorLogliAge")
+
+
+write.csv(SpeciesMat, paste0(outfolder,"/datSamp_",len1,"_Slopes_logliAge.csv"))
+```
+
+## Young vs. Old AROCM_LogliAge
+
+```{r}
+# SpeciesMat1 = SpeciesMat
+plot(SpeciesMat$`IdentityScaledBivProm2+TSlope`,
+     SpeciesMat$`IdentityScaledBivProm2+YoungSlope1`)
+plot(SpeciesMat$`IdentityScaledBivProm2+TSlope_Young`,
+     SpeciesMat$`IdentityScaledBivProm2+TSlope_Old`)
+abline(0,1)
+
+summary(SpeciesMat[,c(17:20,29,30)])
+```
+
+```{r}
+source("Figure2_logliAge.Rmd")
+```
+
+
+## Barplot
+
+```{r}
+specs = unique(SpeciesMat$SpeciesLatinName)
+scaleCpG = TRUE
+
+SpeciesMat$RemoveFei[SpeciesMat$MammalNumberHorvath=="11.1.3"] = 1
+logliAgeSpecies = plyr::ddply(SpeciesMat, c("SpeciesLatinName"), 
+                               function(mat1){
+                                 mat1 = mat1%>%filter(RemoveFei==0)
+                                 if(nrow(mat1)>0)  {
+                                   spec = mat1$SpeciesLatinName[1]
+                                   data.frame(
+                                     MammalNum = ifelse(substr(spec,1,2)=="1.",
+                                                        spec, mat1$MammalNumberHorvath[1]),
+                                     GT = max(mat1$GT),
+                                     ASM = max(mat1$ASM),
+                                     Lifespan = max(mat1$maxAgeCaesar),
+                                     Freq = sum(mat1$Freq),
+                                     TSlope = median(mat1$`IdentityScaledBivProm2+TSlope`),
+                                     YSlope1 = median(mat1$`IdentityScaledBivProm2+YoungSlope1`)
+                                   )
+                                 }
+                                 
+                               })
+dim(logliAgeSpecies )
+# View(logliAgeSpecies )
+
+plot(logliAgeSpecies$TSlope, logliAgeSpecies$YSlope1)
+
+write.csv(logliAgeSpecies,paste0(outfolder,"/slopes_species_log-log_scaled.csv"))
+```
+
+
+```{r}
+########## scatter plot of log-log slopes vs. AROCM
+specs = logliAgeSpecies$SpeciesLatinName
+
+dat_scaledM_rage = NULL
+# logliAgeSpecies = NULL
+for (k in 1:length(specs)) {
+  spec = specs[k]
+  tis = SpeciesMat$Tissue[SpeciesMat$SpeciesLatinName == spec &
+                            SpeciesMat$RemoveFei ==0]
+  dat0 = SpeciesMat[SpeciesMat$SpeciesLatinName == spec,]
+  freq1 = logliAgeSpecies$Freq[k]
+  if(freq1>= 5){
+    
+    if (substr(spec,1,2)=="1.") idx1 = which(dat1$SubOrder == spec)
+    else idx1 = which(dat1$SpeciesLatinName == spec & 
+                        dat1$Tissue %in% tis)
+    
+    age1 = dat1$Age[idx1]
+    maxage = unique(dat1$maxAgeCaesar[idx1])[1]
+    maxage = max(age1,maxage)
+    maturity = unique(dat1$AvgMaturity[idx1])[1]
+    gt =  unique(dat1$Gestation[idx1])[1]
+    
+    
+    {
+      p1 = pmatch(dat1$Basename[idx1], colnames(dat0sesame),
+                  duplicates.ok = TRUE)
+      
+      cgidx = pmatch(cgid, rownames(dat0sesame))
+      cg1 = dat0sesame[cgidx,p1]
+      
+    }
+    cgmean = cgm = colMeans(cg1)
+    if(scaleCpG) cgmean = scale(cgmean)
+    datspec = data.frame(
+      Spec = spec,
+      SpecNum = ifelse(substr(spec,1,2)=="1.",spec,
+                       dat0$MammalNumberHorvath[1]),
+      Tissue = dat1$Tissue[idx1],
+      Age = age1,
+      Lifepspan = maxage,
+      GT = gt,
+      ASM = maturity,
+      Rage = (age1+gt)/(maxage+gt),
+      tage = -log(-log((age1+gt)/(maxage+gt)/1.01)),
+      logliage = logli(age1+gt, m1=0.1*maxage+gt),
+      MeanMethyl = cgm,
+      ScaledM = cgmean
+    )
+    dat_scaledM_rage = rbind(dat_scaledM_rage,
+                             datspec)
+  }
+}
+
+dim(dat_scaledM_rage)
+colnames(dat_scaledM_rage)
+write.csv(dat_scaledM_rage,paste0(outfolder,"/dat_scaledM_rage_v3.csv"))
+```
+
+
+```{r}
+with(dat_scaledM_rage,cor(Rage, ScaledM))
+rmcorr(Spec,Rage, ScaledM, dataset = dat_scaledM_rage)
+cors2 = plyr::ddply(dat_scaledM_rage, "Spec",
+            function(mat1){
+              data.frame(
+                cor_rage = cor(mat1$Rage, mat1$ScaledM),
+                cor_tage = cor(mat1$tage, mat1$ScaledM),
+                cor_logliage = cor(mat1$logliage, mat1$ScaledM)
+              )
+            })
+summary(cors2)
+
+lm_age = lm(ScaledM~ logliage, data = dat_scaledM_rage)
+coef(lm_age)
+p_logliage = ggplot(dat_scaledM_rage,aes(x=logliage, y = ScaledM, 
+                                     color=Spec, label = SpecNum)) +
+  ## geom_point(size=0.5, alpha=0.5) + 
+  geom_text(hjust=0, vjust=0, size = 1) + 
+  geom_smooth(method = lm,se = FALSE,linewidth=0.3,linetype=2)+
+  geom_abline(slope = coef(lm_age)[2], intercept = coef(lm_age)[1]) +
+  xlab("Logli Age") +  ggtitle("b. Median Cor=0.76") +
+  theme_bw() + theme(legend.position = "",axis.title.y=element_blank()) 
+
+lm_Rage = lm(ScaledM~Rage, data = dat_scaledM_rage)
+coef(lm_Rage)
+p_rage = ggplot(dat_scaledM_rage,aes(x=Rage, y = ScaledM, 
+                                     color=Spec, label = SpecNum)) +
+  ## geom_point(size=0.5, alpha=0.5) + 
+  geom_text(hjust=0, vjust=0, size = 1) + 
+  geom_smooth(method = lm,se = FALSE,linewidth=0.3,linetype=2)+
+  geom_abline(slope = coef(lm_Rage)[2], intercept = coef(lm_Rage)[1]) +
+  xlab("Relative Age") + ggtitle("a. Median Cor=0.73") + theme_bw() + 
+  theme(legend.position = "") 
+
+with(dat_scaledM_rage,cor(tage, ScaledM))
+rmcorr(Spec, tage, ScaledM, dataset = dat_scaledM_rage)
+lm_tage = lm(ScaledM~tage, data = dat_scaledM_rage)
+coef(lm_tage)
+p_tage = ggplot(dat_scaledM_rage,aes(x=tage, y = ScaledM, 
+                                     color=Spec, label = SpecNum)) +
+  ## geom_point(size=0.5, alpha=0.5) + 
+  geom_text(hjust=0, vjust=0, size = 1) + 
+  geom_smooth(method = lm,se = FALSE,linewidth=0.3,linetype=2)+
+  geom_abline(slope = coef(lm_tage)[2], intercept = coef(lm_tage)[1]) +
+  xlab("Log-Log Relative Age") + ggtitle("b. Median Cor=0.74") + theme_bw() + 
+  theme(legend.position = "") 
+
+colnames(dat_scaledM_rage)
+```
+
+- relative age and logliage
+
+```{r}
+ss = c("9.9.1", "6.1.1", "1.1.1", "9.9.1",
+       "4.19.1", "9.1.3", "1.4.1", "4.7.1", "4.7.2") 
+# another mouse tissue
+## 4.19.1.  6.2.1 4.13.4. 9.1.3(Skin) 1.4.1. 4.7.1 4.7.2
+sname = c("Mouse","Horse","Human","Mouse",
+          "Beluga whale","Naked mole-rat","Green monkey","Pig","Wild pig")
+tissues = c("Blood", "Blood", "Skin", "Cerebellum",
+            "Blood","Skin","Cortex","Blood","Blood")
+
+data.frame(
+  ss,sname,tissues
+)
+```
+
+
+```{r}
+sslist = list()
+for (nk in 1:length(ss)) {
+  ylab1 = ifelse(nk==1,"ScaledM","")
+  datplot = dat_scaledM_rage%>%
+    filter(SpecNum == ss[nk]& Tissue == tissues[nk])
+  with(datplot, cor(logliage,ScaledM))
+  with(datplot, cor(Rage,ScaledM))
+  sslist[[nk]] 
+  ssplot = ggplot(datplot,
+                        aes(x=logliage, y = ScaledM)) +
+    geom_point(size=1, alpha=0.5) + 
+    geom_point(aes(x=Rage, y = ScaledM, col="red"), size=1, alpha=0.5)
+    ## geom_text(hjust=0, vjust=0, size = 1) + 
+    geom_smooth(method = lm,se = FALSE,linewidth=0.5,linetype=2)+
+    # geom_abline(slope = coef(lm_tage)[2], intercept = coef(lm_tage)[1]) +
+    xlab("Logli Age") + ylab(ylab1) +
+    ggtitle(paste0(letters[nk+2],". ",sname[nk],"_",tissues[nk])) + 
+    theme_bw() + theme(legend.position = "") 
+  
+}
+sslist[[nk]]
+
+```
+
+
+```{r}
+ss = c("9.9.1", "6.1.1", "1.1.1")
+sname = c("Mouse","Horse","Human")
+tissues = c("Blood", "Blood", "Skin")
+
+sslist = list()
+for (nk in 1:3) {
+  ylab1 = ifelse(nk==1,"ScaledM","")
+  sslist[[nk]] = ggplot(dat_scaledM_rage%>%filter(SpecNum == ss[nk]&
+                                                    Tissue == tissues[nk]),
+                        aes(x=logliage, y = ScaledM)) +
+    geom_point(size=1, alpha=0.5) + 
+    ## geom_text(hjust=0, vjust=0, size = 1) + 
+    geom_smooth(method = lm,se = FALSE,linewidth=0.5,linetype=2)+
+    # geom_abline(slope = coef(lm_tage)[2], intercept = coef(lm_tage)[1]) +
+    xlab("Logli Age") + ylab(ylab1) +
+    ggtitle(paste0(letters[nk+2],". ",sname[nk],"_",tissues[nk])) + 
+    theme_bw() + theme(legend.position = "") 
+  
+}
+sslist[[nk]]
+
+pdf(paste0(outfolder,"/Fig7_Rage_tage_scaledM_v6.pdf"),
+    width = 6,height = 6)
+hlay = matrix(c(1,1,1,2,2,2,
+                1,1,1,2,2,2,
+                1,1,1,2,2,2,
+                3,3,4,4,5,5,
+                3,3,4,4,5,5), nrow = 5,byrow = TRUE)
+grid.arrange(p_rage,p_logliage,
+             sslist[[1]],sslist[[2]],sslist[[3]],
+             nrow=2,layout_matrix=hlay)
+dev.off()
+
+
+######### barplot
+colnames(SpeciesMat)
+
+logliAgeSpecies = plyr::ddply(SpeciesMat, c("SpeciesLatinName"), 
+                               function(mat1){
+                                 mat1 = mat1%>%filter(RemoveFei==0)
+                                 if(nrow(mat1)>0)  {
+                                   spec = mat1$SpeciesLatinName[1]
+                                   data.frame(
+                                     MammalNum = ifelse(substr(spec,1,2)=="1.",
+                                                        spec, mat1$MammalNumberHorvath[1]),
+                                     GT = max(mat1$GT),
+                                     ASM = max(mat1$ASM),
+                                     Lifespan = max(mat1$maxAgeCaesar),
+                                     Freq = sum(mat1$Freq),
+                                     TSlope = median(mat1$`IdentityScaledBivProm2+TSlope`),
+                                     YSlope1 = median(mat1$`IdentityScaledBivProm2+YoungSlope1`)
+                                   )
+                                 }
+                                 
+                               })
+dim(logliAgeSpecies )
+
+data = plyr::ddply(SpeciesMat, c("SpeciesLatinName"), 
+                   function(mat1){
+                     mat1 = mat1%>%
+                       filter(RemoveFei==0&
+                                mat1[,17]<5&mat1[,17]> -0.1)
+                     if(nrow(mat1)>0)  {
+                       mat1[,c(1:17,27)]
+                     }
+                     })
+colnames(data)
+data$YSlope1 = 
+  data$`IdentityScaledBivProm2+YoungSlope1` * data$maxAgeCaesar
+
+dat2 = logliAgeSpecies%>%filter(Freq>= 10)
+dat2 = dat2[order(dat2$Lifespan),]
+dat2$rank = (1:nrow(dat2))
+dat2$YSlope1 = dat2$YSlope1*dat2$Lifespan
+
+m1 = match(data$SpeciesLatinName, dat2$SpeciesLatinName)
+data$rank = NA
+data$rank[!is.na(m1)] = dat2$rank[m1[!is.na(m1)]]
+# colnames(data)[17:19] = colnames(dat2)[7:8]
+colnames(data)[17] = colnames(dat2)[7]
+
+plist = hlist = list()
+#for(k in c(10,11,1)){
+for(kk in 1:2){
+  yname = ifelse(kk==2, 
+                 paste0("AROCM Relative Age"),
+                 paste0("AROCM LogliAge"))
+  
+  # data$lower = data[,kk+5] - 2/sqrt(data$Freq - 3)
+  # data$upper = data[,kk+5] + 2/sqrt(data$Freq - 3)
+  ##### Ratio
+  r1 = colnames(dat2)[kk+6]
+  h1 = ggplot(dat2, aes(!!ensym(r1)))+
+    geom_histogram()
+  hlist[[kk]] = h1
+  
+  {
+    tit1 = ifelse(kk==1, paste0("a. N = ",nrow(dat2)),
+                  paste0("b. Age Interval (L,U)=(0,Lifespan)"))
+    # tmpm = match(dat2$MammalNum, dat1$MammalNumberHorvath)
+    
+    tmpm = match(dat2$MammalNum, dat1$MammalNumberHorvath)
+    tmpm[is.na(tmpm)] = match(dat2$MammalNum, dat1$SubOrder)[is.na(tmpm)]
+    
+    if(kk == 1) speclabsfull = paste(dat1$MammalNumberHorvath[tmpm],
+                                     dat1$SpeciesCommonName[tmpm],sep=" ") else
+                                       speclabsfull = NULL
+    
+    # speclabs = dat2$MammalNum
+    # med1 = median(dat2%>%select(all_of(r1)))
+    
+    p1 = ggplot(dat2) +
+      geom_bar(aes(y = !!ensym(r1), x = rank), stat="identity", position="dodge", 
+               width = 1, 
+               fill="grey", col="black",na.rm=TRUE) + 
+      coord_flip() + theme_bw() +
+      # geom_hline(data = data,
+      #            aes(yintercept = mean(!!ensym(r1), na.rm=TRUE), col="red")) +
+      labs(y = yname, title = tit1) +
+      scale_x_continuous(ifelse(kk==1,"Species",""),
+                         breaks = dat2$rank, labels = speclabsfull) +
+      scale_y_continuous(expand = c(0,0)) +
+      # scale_fill_continuous(name = "Species", labels = speclabsfull) + 
+      theme(axis.text=element_text(size=8), 
+            axis.ticks.x = element_blank(),
+            plot.title = element_text(size = 11, hjust = 0.5)) +
+      geom_point(data = data, 
+                 aes(rank, !!ensym(r1), col=col.tissue), na.rm=TRUE) +
+      theme(legend.position = "none")
+    plist[[kk]] = p1
+    # print(p1)
+    
+  }
+  
+}
+
+{
+  yname = ifelse(kk==2, 
+                 paste0("AROCM"),
+                 paste0("AROCM logliAge"))
+  
+  # data$lower = data[,kk+5] - 2/sqrt(data$Freq - 3)
+  # data$upper = data[,kk+5] + 2/sqrt(data$Freq - 3)
+  ##### Ratio
+  r1 = colnames(dat2)[kk+6]
+  h1 = ggplot(dat2, aes(!!ensym(r1)))+
+    geom_histogram()
+  hlist[[kk]] = h1
+  
+  dat2$RSlope = dat2$YSlope1*dat2$Lifespan
+  data$RSlope = data$YSlope1 * data$maxAgeCaesar
+  r1 = "RSlope"
+  {
+    tit1 = ifelse(kk==1, paste0("a. N = ",nrow(dat2)),
+                  paste0("b. Age Interval (L,U)=(0,Lifespan)"))
+    # tmpm = match(dat2$MammalNum, dat1$MammalNumberHorvath)
+    
+    tmpm = match(dat2$MammalNum, dat1$MammalNumberHorvath)
+    tmpm[is.na(tmpm)] = match(dat2$MammalNum, dat1$SubOrder)[is.na(tmpm)]
+    
+    if(kk == 1) speclabsfull = paste(dat1$MammalNumberHorvath[tmpm],
+                                     dat1$SpeciesCommonName[tmpm],sep=" ") else
+                                       speclabsfull = NULL
+    
+    # speclabs = dat2$MammalNum
+    # med1 = median(dat2%>%select(all_of(r1)))
+    
+    p1 = ggplot(dat2) +
+      geom_bar(aes(y = !!ensym(r1), x = rank), stat="identity", position="dodge", 
+               width = 1, 
+               fill="grey", col="black",na.rm=TRUE) + 
+      coord_flip() + theme_bw() +
+      # geom_hline(data = data,
+      #            aes(yintercept = mean(!!ensym(r1), na.rm=TRUE), col="red")) +
+      labs(y = yname, title = tit1) +
+      scale_x_continuous(ifelse(kk==1,"Species",""),
+                         breaks = dat2$rank, labels = speclabsfull) +
+      scale_y_continuous(expand = c(0,0)) +
+      # scale_fill_continuous(name = "Species", labels = speclabsfull) + 
+      theme(axis.text=element_text(size=8), 
+            axis.ticks.x = element_blank(),
+            plot.title = element_text(size = 11, hjust = 0.5)) +
+      geom_point(data = data, 
+                 aes(rank, !!ensym(r1), col=col.tissue), na.rm=TRUE) +
+      theme(legend.position = "none")
+    plist[[kk]] = p1
+    # print(p1)
+    
+  }
+  
+}
+plist[[1]]
+# grid.arrange(grobs = hlist,ncol=2)
+
+
+pdf(paste0(outfolder,"/Figure7_",len1,"_k=",nrow(dat2),"_v5.pdf"),
+    # width = 800,height = 1000,
+    onefile = TRUE)
+## hlay = c(1,1,2)
+grid.arrange(plist[[1]], plist[[2]], nrow=1,
+             ## layout_matrix=hlay,
+             widths = 3:2)
+dev.off()
+
+
+qcod = function(x){
+  qt_x = quantile(x, probs = c(0.25, 0.75))
+  (qt_x[2] - qt_x[1])/ (qt_x[2] + qt_x[1])
+  
+}
+
+qcod(dat2$TSlope)
+qcod(dat2$YSlope1)
+
+
+```
+
