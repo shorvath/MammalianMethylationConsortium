@@ -2,7 +2,7 @@
 
 ## Introduction
 
-We have developed various tissue, sex, and species predictors for mammalian species. The models were trained on an unprecedented DNA methylation data set by Mammalian Methylation Consortium across 348 mammals generated using a custom DNA methylation measurement platform (A. Arneson et al., 2022).
+We have developed various tissue, sex, and species predictors for mammalian species. The models were trained on an unprecedented DNA methylation data set by Mammalian Methylation Consortium across 348 mammals generated using a custom DNA methylation measurement platform (A. Arneson et al., 2022). To see detailed reproduciable code used to generate results for C. Li et al., (2024), see folder "Manuscript Detailed Code."
 
 ---
 
