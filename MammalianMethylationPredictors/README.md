@@ -9,9 +9,16 @@ We have developed various tissue, sex, and species predictors for mammalian spec
 ## Predictor Table of Contents
 
 All predictor obejcts and csv files are in "./MammalianMethylationPredictors/Predictors/"
+To install the R package that includes convenient functions for these predictors, go to [http:/caeseriousli/mammalMethylationPredictors](https://github.com/caeseriousli/MammalianMethylationPredictors), or devtools::install_github("caeseriousli/mammalMethylationPredictors") 
 
 | Predictor | Location | Note |
 |:-----------|:-----------|:------------|
+| Tissue | [Tissue-agnostic Lifespan log-years Predictor Coefficients.csv](./Predictors) | Regularized Regression Coeffs |
+| Tissue | [Tissue-agnostic Gestation Time (log-days) Predictor Coefficients.csv](./Predictors) | Regularized Regression Coeffs |
+| Tissue | [Tissue-agnostic Time-to-Sexual Maturity (log-years) Predictor Coefficients.csv](./Predictors) | Regularized Regression Coeffs |
+| Tissue | [Tissue-aware Maximum Lifespan (log-years) Predictor Coefficients.csv](./Predictors) | Regularized Regression Coeffs |
+| Tissue | [Tissue-aware Gestation Time (log-days) Predictor Coefficients.csv](./Predictors) | Regularized Regression Coeffs |
+| Tissue | [Tissue-aware Time-to-Sexual Maturity (log-years) Predictor Coefficients.csv](./Predictors) | Regularized Regression Coeffs |
 | Tissue | [Tissue_Overlap320K40K_Filter5samples_100trees_RandomForest.RDS](./Predictors) | 100 Trees, feature class balancing\* |
 | Species | [/Species_Overlap320K40K_Filter5samples_100trees_randomForest.RDS](./Predictors) | 100 Trees, feature class balancing\* |
 
