@@ -1,0 +1,14 @@
+EnsembleAge: Epigenetic Age Prediction Using Ensemble Clock Methods
+
+CITATION:
+Haghani, A., et al. (2025). EnsembleAge: enhancing epigenetic age assessment with a multi-clock framework. GeroScience. DOI: 10.1007/s11357-025-01808-1
+
+This package provides tools for predicting epigenetic age using ensemble methods. 
+It includes multiple clock types and automatically detects your data platform 
+for accurate age prediction across various tissues and species.
+
+For help: ?EnsembleAge or help("EnsembleAge-package")
+For citation: citation("EnsembleAge")
+
+Repository: https://github.com/ahaghani/EnsembleAge
+Paper: https://doi.org/10.1007/s11357-025-01808-1

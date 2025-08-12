@@ -1,0 +1,13 @@
+"Basename","Age","Female","SpeciesLatinName","Tissue"
+"# INSTRUCTIONS: Fill in the information below and delete these instruction rows","","","",""
+"# REQUIRED: Basename - Sample identifiers matching your methylation data","","","",""
+"# REQUIRED: Age - Chronological age in years (e.g., 1.5 for 18-month-old mouse)","","","",""
+"# OPTIONAL: Female - 1 for female, 0 for male (defaults to NA if missing)","","","",""
+"# OPTIONAL: SpeciesLatinName - 'Mus musculus', 'Rattus norvegicus', 'Homo sapiens' (defaults to 'Mus musculus')","","","",""
+"# OPTIONAL: Tissue - 'Blood', 'Liver', 'Brain', 'Heart', etc. (defaults to 'Unknown' if missing)","","","",""
+"# DELETE ALL INSTRUCTION ROWS BEFORE USING THE TEMPLATE","","","",""
+"Sample_001",NA,NA,"Mus musculus",NA
+"Sample_002",NA,NA,"Mus musculus",NA
+"Sample_003",NA,NA,"Mus musculus",NA
+"Sample_004",NA,NA,"Mus musculus",NA
+"Sample_005",NA,NA,"Mus musculus",NA

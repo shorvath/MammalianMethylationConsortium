@@ -1,0 +1,253 @@
+---
+title: "EnsembleAge: Epigenetic Age Prediction Using Ensemble Clock Methods"
+author: "Amin Haghani"
+date: "`r Sys.Date()`"
+output: 
+  BiocStyle::html_document:
+    toc: true
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{EnsembleAge: Epigenetic Age Prediction Using Ensemble Clock Methods}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+# Introduction
+
+EnsembleAge provides tools for predicting epigenetic age using various clock methods including Universal Clocks, Elastic Epigenetic clocks, static ensemble methods, and dynamic ensemble clocks. The package automatically detects your data platform and prepares the data accordingly for accurate age prediction across various tissues and species.
+
+This package accompanies the open access publication by Haghani et al. (2025): "EnsembleAge: enhancing epigenetic age assessment with a multi‑clock framework" in GeroScience (DOI: 10.1007/s11357-025-01808-1).
+
+## Installation
+
+```{r install, eval=FALSE}
+# Install devtools if you haven't already
+if (!requireNamespace("devtools", quietly = TRUE)) {
+    install.packages("devtools")
+}
+
+# Install EnsembleAge
+devtools::install_github("ahaghani/EnsembleAge")
+```
+
+## Quick Start
+
+The easiest way to predict epigenetic age:
+
+```{r quick_start, eval=FALSE}
+library(EnsembleAge)
+
+# Ultimate one-liner - automatically detects platform and runs predictions
+results <- predictEnsemble("path/to/methylation_data.RDS", "path/to/sample_sheet.csv")
+
+# View predictions
+head(results)
+```
+
+**That's it!** EnsembleAge automatically:
+
+- ✅ Detects your platform (Human, Mammal40k, Mammal320k)
+- ✅ Preprocesses your data correctly  
+- ✅ Selects optimal clock methods
+- ✅ Handles missing probes with imputation
+- ✅ Generates comprehensive age predictions
+
+## Supported Platforms
+
+EnsembleAge **automatically detects and handles** multiple methylation array platforms:
+
+| Platform | Probe Count | File Types | Auto-Detection |
+|----------|-------------|------------|----------------|
+| **Human EPIC/450k** | ~850k/450k | `.RData`, `.RDS`, `.csv` | ✅ Automatic |
+| **Mammal320k** | ~320k | `.RDS`, `.csv` | ✅ Automatic |
+| **Mammal40k** | ~40k | `.RDS`, `.csv` | ✅ Automatic |
+
+## Simple Example
+
+```{r example_simulated, eval=FALSE}
+library(EnsembleAge)
+
+# Create simulated mammal40k methylation data
+set.seed(123)
+n_probes <- 1000  # Using subset for example
+n_samples <- 10
+
+# Methylation data: probes as rows, samples as columns, with CGid
+methylation_data <- data.frame(
+  CGid = paste0("cg", sprintf("%08d", 1:n_probes)),
+  matrix(runif(n_probes * n_samples, 0.2, 0.8), nrow = n_probes, ncol = n_samples)
+)
+colnames(methylation_data)[-1] <- paste0("Sample_", sprintf("%02d", 1:n_samples))
+
+# Sample sheet with required and optional columns
+sample_sheet <- data.frame(
+  Basename = paste0("Sample_", sprintf("%02d", 1:n_samples)),
+  Age = c(0.5, 1.2, 2.1, 0.8, 1.5, 2.8, 1.1, 0.9, 2.3, 1.7),
+  Female = c(1, 0, 1, 1, 0, 1, 0, 1, 0, 1),  # 1=female, 0=male
+  Tissue = "Blood",
+  SpeciesLatinName = "Mus musculus"
+)
+
+# Run predictions
+results <- predictEnsemble(methylation_data, sample_sheet)
+
+# View results
+head(results)
+#   Basename  Age epiClock   epiAge AgeAcceleration Female Tissue clockFamily
+# 1 Sample_01 0.5   Static     0.8            0.12      1  Blood   Ensemble.Static
+```
+
+## Data Requirements
+
+### Methylation Data
+- **Format**: Data frame or matrix with CpG sites and sample methylation values
+- **Values**: Beta values (0-1 range) representing methylation levels
+- **Orientation**: Probes as rows OR columns (auto-detected and fixed)
+- **File Types**: `.RDS`, `.RData`, `.csv` supported
+
+### Sample Sheet
+- **Required**: `Basename` (sample IDs), `Age` (chronological age in years)
+- **Optional**: `Female` (1=female, 0=male), `Tissue`, `SpeciesLatinName`
+- **Format**: CSV file or R data frame
+
+## Clock Families Included
+
+| Clock Family | Best For | # Clocks | Description | Reference |
+|-------------|----------|----------|-------------|-----------|
+| **Ensemble.Static** | General mammal aging | 2 | Main ensemble clocks for mammals | [EnsembleAge Package](https://doi.org/10.1007/s11357-025-01808-1) |
+| **EnsembleAge.Dynamic** | Specialized predictions | 50+ | Individual specialized mammal clocks | [EnsembleAge Package](https://doi.org/10.1007/s11357-025-01808-1) |
+| **EnsembleDualAge.Static** | Cross-species studies | 1 | Human-mouse optimized clock | [EnsembleAge Package](https://doi.org/10.1007/s11357-025-01808-1) |
+| **UniClock2/3** | Universal mammals | 6 | Cross-tissue, cross-species clocks | [Universal Clocks](https://www.nature.com/articles/s43587-023-00462-6) |
+| **LifespanUberClock** | Lifespan prediction | 12+ | Maximum lifespan focused clocks | [Lifespan Uber Clock](https://www.biorxiv.org/content/10.1101/2022.01.16.476530v1.full) |
+| **DNAmAge*** | Development/intervention | 39 | Development, Elastic, Intervention clocks | [Original Mammalian Clocks](https://elifesciences.org/articles/75244) |
+
+## Advanced Usage
+
+### Multiple Output Formats
+
+```{r advanced_usage, eval=FALSE}
+# Get long format (default) - best for analysis
+results_long <- predictEnsemble(methylation_data, sample_sheet, output_format = "long")
+
+# Get wide format - one row per sample
+results_wide <- predictEnsemble(methylation_data, sample_sheet, output_format = "wide") 
+
+# Get both formats
+results_both <- predictEnsemble(methylation_data, sample_sheet, output_format = "both")
+```
+
+### Working with Files vs Objects
+
+```{r file_usage, eval=FALSE}
+# Using file paths
+results <- predictEnsemble("methylation.RDS", "samples.csv")
+
+# Using R objects directly  
+results <- predictEnsemble(my_methylation_df, my_sample_df)
+
+# Mixed approach
+results <- predictEnsemble("methylation.RDS", my_sample_df)
+```
+
+### Auto-generate Sample Sheet
+
+```{r template_usage, eval=FALSE}
+# If you don't have a sample sheet, let EnsembleAge create a template
+results <- predictEnsemble(methylation_data, samples = NULL)
+
+# This creates 'user_data_sample_sheet_template.csv' 
+# Fill it out with your actual sample information and rerun
+```
+
+### Result Saving Control
+
+```{r saving_control, eval=FALSE}
+# Default: saves to current directory with automatic naming
+results <- predictEnsemble("data.RDS", "samples.csv")
+# Creates: EnsembleAge_data_long_20250811_143052.csv
+
+# Custom directory and prefix
+results <- predictEnsemble("data.RDS", "samples.csv", 
+                          output_dir = "results/", 
+                          output_prefix = "MouseStudy")
+
+# Custom filename
+results <- predictEnsemble("data.RDS", "samples.csv", 
+                          output_filename = "my_results.csv")
+
+# Turn off saving (just return results)
+results <- predictEnsemble("data.RDS", "samples.csv", 
+                          save_results = FALSE)
+```
+
+## Understanding Results
+
+### Output Format
+
+The `predictEnsemble` function returns a data frame with the following columns:
+
+- **`Basename`**: Sample identifier
+- **`Age`**: Chronological age from sample sheet
+- **`epiClock`**: Name of the specific clock used for prediction
+- **`epiAge`**: Predicted epigenetic age
+- **`AgeAccelation`**: Age acceleration (epiAge - Age)
+- **`clockFamily`**: Clock family category
+- Additional sample sheet columns (Female, Tissue, etc.)
+
+### Interpretation
+
+- **Positive age acceleration**: Sample appears older than chronological age
+- **Negative age acceleration**: Sample appears younger than chronological age  
+- **Multiple clocks per sample**: Each row represents one clock's prediction for one sample
+
+## Citation
+
+If you use this package in your research, please cite:
+
+### EnsembleAge Package
+```
+Haghani, A., et al. (2025). EnsembleAge: enhancing epigenetic age assessment with a multi‑clock framework. 
+GeroScience. DOI: 10.1007/s11357-025-01808-1
+```
+
+### Universal Clocks
+```
+Lu, A.T., et al. (2023). Universal DNA methylation age across mammalian tissues. 
+Nature Aging, 3(9), 1144-1166. DOI: 10.1038/s43587-023-00462-6
+```
+
+### Original Mammalian Clocks  
+```
+Haghani, A., et al. (2021). DNA methylation networks underlying mammalian traits. 
+eLife, 10, e75244. DOI: 10.7554/eLife.75244
+```
+
+### Lifespan Uber Clock
+```
+Lu, A.T., et al. (2022). Universal DNA methylation clocks for mammals. 
+bioRxiv. DOI: 10.1101/2022.01.16.476530
+```
+
+## License
+
+MIT License - Free for research and commercial use.
+
+## Support
+
+- **Issues**: Report bugs or request features on our [GitHub issues page](https://github.com/ahaghani/EnsembleAge/issues)
+- **Questions**: Contact Amin Haghani at haghani_amin@yahoo.com
+
+## Session Information
+
+```{r sessionInfo}
+sessionInfo()
+``` 

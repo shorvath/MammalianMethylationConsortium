@@ -1,0 +1,32 @@
+citHeader("To cite EnsembleAge in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "EnsembleAge: enhancing epigenetic age assessment with a multi-clock framework",
+  author   = personList(as.person("Amin Haghani")),
+  journal  = "GeroScience",
+  year     = "2025",
+  volume   = "",
+  number   = "",
+  pages    = "",
+  url      = "https://doi.org/10.1007/s11357-025-01808-1",
+  doi      = "10.1007/s11357-025-01808-1",
+  textVersion = paste("Haghani, A. (2025).",
+                     "EnsembleAge: enhancing epigenetic age assessment with a multi-clock framework.",
+                     "GeroScience.",
+                     "https://doi.org/10.1007/s11357-025-01808-1")
+)
+
+citEntry(
+  entry    = "Manual",
+  title    = "EnsembleAge: Multi-Platform Epigenetic Age Prediction",
+  author   = personList(as.person("Amin Haghani")),
+  year     = "2025",
+  note     = "R package version 0.99.1",
+  url      = "https://github.com/ahaghani/EnsembleAge",
+  doi      = "10.5281/zenodo.16814673",
+  textVersion = paste("Haghani, A. (2025).",
+                     "EnsembleAge: Multi-Platform Epigenetic Age Prediction.",
+                     "R package version 0.99.1.",
+                     "https://doi.org/10.5281/zenodo.16814673")
+)

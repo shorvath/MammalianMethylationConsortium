@@ -1,0 +1,36 @@
+Package: EnsembleAge
+Type: Package
+Title: Epigenetic Age Prediction Using Ensemble Clock Methods
+Version: 0.99.1
+Author: Amin Haghani <dr.a.haghani@gmail.com> [aut, cre]
+Maintainer: Amin Haghani <dr.a.haghani@gmail.com>
+Description: This package provides tools for predicting epigenetic age using
+    ensemble methods. It includes multiple clock types including Universal Clocks,
+    Elastic Epigenetic clocks, static ensemble methods, and dynamic ensemble clocks
+    for accurate age prediction across various tissues and species. 
+    CITATION: This package accompanies the open access publication by Haghani et al. (2025):
+    "EnsembleAge: enhancing epigenetic age assessment with a multi-clock framework" 
+    in GeroScience (DOI: 10.1007/s11357-025-01808-1). The clocks are freely
+    available for research use.
+License: MIT + file LICENSE
+URL: https://github.com/ahaghani/EnsembleAge, https://doi.org/10.1007/s11357-025-01808-1, https://doi.org/10.5281/zenodo.16814673
+BugReports: https://github.com/ahaghani/EnsembleAge/issues
+biocViews: Software, Epigenetics, DNAMethylation, StatisticalMethod, Preprocessing
+Encoding: UTF-8
+LazyData: false
+RoxygenNote: 7.3.2
+Depends: 
+    R (>= 4.1.0)
+Imports:
+    dplyr,
+    tibble,
+    tidyr,
+    plyr,
+    stringr,
+    data.table
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+

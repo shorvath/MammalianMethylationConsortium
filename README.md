@@ -24,3 +24,13 @@ Haghani, A., Li, C. Z., Robeck, T. R., Zhang, J., Lu, A. T., Ablaeva, J., Acosta
 
 A paper on the universal epigenetic clocks in mammals:  
 Lu, A. T., Fei, Z., Haghani, A., Robeck, T. R., Zoller, J. A., Li, C. Z., Lowe, R., Yan, Q., Zhang, J., Vu, H., Ablaeva, J., Acosta-Rodriguez, V. A., Adams, D. M., Almunia, J., Aloysius, A., Ardehali, R., Arneson, A., Baker, C. S., Banks, G., . . . Horvath, S. (2023). Universal DNA methylation age across mammalian tissues. Nat Aging. https://doi.org/10.1038/s43587-023-00462-6 
+
+## EnsembleAge R Package
+
+**Latest Addition:** Complete R package for multi-platform epigenetic age prediction using ensemble methods.
+
+- **Repository**: [EnsembleAge](./EnsembleAge/)
+- **Installation**: \`devtools::install_github('ahaghani/EnsembleAge', ref='v0.99.1')\`
+- **Platforms**: Human, Mammal40k, Mammal320k arrays (automatic detection)
+- **Publication**: Haghani, A. (2025). EnsembleAge: enhancing epigenetic age assessment with a multi‑clock framework. GeroScience. DOI: [10.1007/s11357-025-01808-1](https://doi.org/10.1007/s11357-025-01808-1)
+- **DOI**: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16814673.svg)](https://doi.org/10.5281/zenodo.16814673)
